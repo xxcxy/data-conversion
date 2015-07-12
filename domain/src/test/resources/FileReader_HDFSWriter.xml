@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 配置文件跟节点-->
+<process-plan>
+	<!--插件id  插件类型（读插件）-->
+	<plugin ID="reader_id" type="reader" >
+		<!--插件以及插件依赖jar包的目录 -->
+		<jar-dir></jar-dir>
+		<!--插件主类，插件主类id -->
+		<main-class ID="RCLID" class="com.customtime.data.conversion.plugin.reader.FileReader">
+			<!--插件主类里的属性值 -->
+			<property name="fileName">/home/logserver/svn</property>
+			<!--插件主类里的属性值 -->
+			<property name="logText">hello property</property>
+			<!--插件主类里的属性值 -->
+			<property name="filetype">500</property>
+			<!--插件主类里的属性值 -->
+			<property name="longValue">250</property>
+		</main-class>
+		<!--插件执行规则id 目前配死 -->
+		<rule-id>ruler_id</rule-id>
+	</plugin>
+	<!--插件id  插件类型（写插件）-->
+	<plugin ID="writer_id" type="writer">
+		<!--插件以及插件依赖jar包的目录 -->
+		<jar-dir></jar-dir>
+		<!--插件主类，插件主类id -->
+		<main-class ID="wid" class="com.customtime.data.conversion.plugin.writer.FileWriter">
+		</main-class>
+		<!--插件对应的处理插件id -->
+		<handler-id>handler_wid</handler-id>
+		<!--插件执行规则id 目前配死 -->
+		<rule-id>ruler_id</rule-id>
+	</plugin>
+
+	<!--插件id  插件类型（处理插件）id如没有被任何一个读或写插件引用，这个处理插件就不会执行 -->
+	<plugin ID="handler_id" type="handler">
+		<!--插件以及插件依赖jar包的目录 -->
+		<jar-dir></jar-dir>
+		<!--插件主类，插件主类id -->
+		<main-class ID="hid" class="com.customtime.data.conversion.domain.handler.DefaultHandler">
+			<!--插件主类里的属性值 -->
+			<property name="logText">hello handler</property>
+		</main-class>
+	</plugin>
+	<plugin ID="handler_wid" type="handler">
+		<jar-dir></jar-dir>
+		<main-class ID="hdid" class="com.customtime.data.conversion.domain.handler.DefaultWriterHandler">
+		</main-class>
+	</plugin>
+	<!--插件id  插件类型（执行规则插件）目前配死 -->
+	<plugin ID="ruler_id" type="ruler">
+		<jar-dir></jar-dir>
+		<main-class ID="rid" class="com.customtime.data.conversion.domain.ruler.DefaultRunRuler">
+			<property name="rulerName">hello ruler</property>
+		</main-class>
+	</plugin>
+</process-plan>

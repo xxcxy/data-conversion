@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 配置文件跟节点-->
+<process-plan>
+	<!--插件id  插件类型（读插件）-->
+	<plugin ID="reader_id" type="reader" >
+		<!--插件以及插件依赖jar包的目录 -->
+		<jar-dir></jar-dir>
+		<!--插件主类，插件主类id -->
+		<main-class ID="RCLID" class="com.customtime.data.conversion.plugin.reader.XmlReader">
+			<!-- xml 版本号 默认值:1.0 -->
+			<property name="version">1.0</property>
+			<!-- xml的编码  默认值：UTF-8 -->
+			<property name="encoding">UTF-8</property>
+			<!-- 读取的xml文件的绝对路径 -->
+			<property name="filePath">D:\\net_login_info.xml</property>
+			<!-- 行取值规则中属性和文本同时配置时的优先级
+				  可配property和inside property表示优先取属性,inside表示优先取文本 
+				  默认值：property 
+			-->
+			<property name="pathPRI">property</property>
+			<!-- 行取值规则中行标签下的子标签的默认选择顺序
+				  可配first last 0 1 2 …… 
+				  默认值：first 
+			-->
+			<property name="defaultFindTagIndex">0</property>
+			<!-- 行取值规则中属性和文本全都没有配置时的默认取值方式
+				 可配property和inside property表示优先取属性,inside表示优先取文本
+				 默认值：property
+			-->
+			<property name="defaultGetPath">property</property>
+			<!-- 行取值规则中取属性值时未指定属性名时的默认属性索引 
+				 可配first last 0 1 2 …… 
+				 默认值：first
+			-->
+			<property name="defaultPropertyIndex">first</property>
+			<!--行标签规则，必须配置为行取值规则中的行标签为止 默认值：#info#log -->
+			<property name="rowTagPath">#info#log</property>
+			<!--行取值规则 
+			#info#log[account] 取log标签的属性名为account的属性值
+			#info#log[@0] 取log标签的属性索引为0即第一个属性的属性值，索引从0开始
+			#info#log#account() 取log标签的子标签名为account的文本值
+			#info#log#account[value]() 根据pathPRI配置项自动判断选择 取log标签的子标签名为account的属性名为value的属性值 还是 取log标签的子标签名为account的文本值
+			#info#log#account 根据defaultGetPath配置项自动判断选择 取log标签的子标签的属性值还是文本值，如果是属性值则还依赖defaultPropertyIndex的配置项
+			#info#log#innerlog@last() 当log标签下存在多个innerlog标签时，取最后一个innerlog标签的文本值
+			#info#log#innerlog@last[@first] 当log标签下存在多个innerlog标签时，取最后一个innerlog标签的第一个属性的属性值
+			#info#log#innerlog(name=account) 当log标签下存在多个innerlog标签时，取其中属性name的属性值为account的innerlog标签的文本值
+			#info#log#innerlog[@2](name=account) 当log标签下存在多个innerlog标签时，取其中属性name的属性值为account的innerlog标签的文本值或者它的第三个属性的属性值（依赖pathPRI的配置）
+			等等
+			-->
+			<property name="row">
+				#info#log[account],
+				#info#log[accountType],
+				#info#log[loginType],
+				#info#log[priIpAddr],
+				#info#log[pubIpAddr],
+				#info#log[onLineTime],
+				#info#log[offLineTime]
+			</property>
+		</main-class>
+		<!--插件执行规则id 目前配死 -->
+		<rule-id>ruler_id</rule-id>
+	</plugin>
+	<!--插件id  插件类型（写插件）-->
+	<plugin ID="writer_id" type="writer">
+		<!--插件以及插件依赖jar包的目录 -->
+		<jar-dir></jar-dir>
+		<!--插件主类，插件主类id -->
+		<main-class ID="wid" class="com.customtime.data.conversion.plugin.writer.XmlWriter">
+			<!-- xml的编码  默认值：UTF-8  -->
+			<property name="encoding">UTF-8</property>
+			<!-- 生成的xml文件所在的目录  -->
+			<property name="fileDirectory">d:\\xmlwrite\\</property>
+			<!-- 生成的文件名 
+				$number,10$ 表示按数字递增，且最大位数为10位
+				$time,yyyyMMddHHmmss$ 表示取生成文件时的系统时间的时间戳，格式必须是java的SimpleDateFormat类支持的且字母连续的格式
+				\.xml 表示xml文件后缀，之所以是\.是因为正则表达式需要转义.符号
+			-->
+			<property name="fileName">LUU-SD$number,10$-$time,yyyyMMddHHmmss$\.xml</property>
+			<!-- 以下三个属性maxRowNum maxLineNum maxFileSize任意一个匹配则文件结束 -->
+			<!-- 行数据的最大个数 默认值：40000-->
+			<property name="maxRowNum">40000</property>
+			<!-- 文件的最大行数 只在需要时进行配置 -->
+			<property name="maxLineNum">1000000</property>
+			<!-- 文件的最大容量，此处配置数字即可，单位为M（兆）只在需要时进行配置  -->
+			<property name="maxFileSize">1000</property>
+			<!-- 每隔N条从缓冲区写到磁盘上 默认值：1000 -->
+			<property name="flushNum">1000</property>
+			<!-- 为应对真实数据中可能存在$符号，故支持配置rowTag标签中用来匹配替换的标记，由于使用正则所以$符号需要转义为\$ 默认值\s  -->
+			<property name="symbol">\$</property>
+			<!-- 匹配文件开始部分中需要用来匹配替换其中$xx$所表示的文本的一整个【完整标签】的正则表达式 -->
+			<property name="formatTopRegex"><![CDATA[<info\s+id="\$[^\$"]*\$"\s+type="net_login_info"\s+resultnum="\$[^\$"]*\$"\s*>]]></property>
+			<!-- 文件开始部分
+				 $businessId(10)$ 表示取插件中获取到的businessId值，占位符(10)为该值可能出现的最大位数为10位
+				 $rowNum(10)$ 表示取插件中生成行数据的总数，占位符(10)为该值可能出现的最大位数为10位
+				 <br/>表示此处需要换行
+			-->
+			<property name="wrapTagStart">
+			<![CDATA[
+				<?xml version="1.0" encoding="UTF-8"?><br/>
+				<info id="$businessId(12)$" type="net_login_info" resultnum="$rowNum(10)$">
+			]]>
+			</property>
+			<!-- 行数据生成时的模板
+				 $0$表示取队列中某行的索引为0的数据
+				 <br/>表示此处需要换行，行数据与行数据之间默认换行，故最后<br/>无需配置
+			-->
+			<property name="rowTag">
+			<![CDATA[
+				<log account="$0$"<br/>
+				accountType="$1$"<br/>
+				loginType="$2$"<br/>
+				priIpAddr="$3$"<br/>
+				pubIpAddr="$4$"<br/>
+				onLineTime="$5$"<br/>
+				offLineTime="$6$"<br/>
+				/>
+			]]>
+			</property>
+			<!-- 文件结束部分 -->
+			<property name="wrapTagEnd">
+			<![CDATA[
+				</info>
+			]]>
+			</property>
+		</main-class>
+		<!--插件对应的处理插件id -->
+		<handler-id>handler_wid</handler-id>
+		<!--插件执行规则id 目前配死 -->
+		<rule-id>ruler_id</rule-id>
+	</plugin>
+	<!--插件id  插件类型（写插件）-->
+	<plugin ID="writer_id2" type="writer">
+		<!--插件以及插件依赖jar包的目录 -->
+		<jar-dir></jar-dir>
+		<!--插件主类，插件主类id -->
+		<main-class ID="wid2" class="com.customtime.data.conversion.plugin.writer.XmlWriter">
+			<!-- xml的编码  默认值：UTF-8  -->
+			<property name="encoding">UTF-8</property>
+			<!-- 生成的xml文件所在的目录  -->
+			<property name="fileDirectory">d:\\xmlwrite\\</property>
+			<!-- 生成的文件名 
+				$number,10$ 表示按数字递增，且最大位数为10位
+				$time,yyyyMMddHHmmss$ 表示取生成文件时的系统时间的时间戳，格式必须是java的SimpleDateFormat类支持的且字母连续的格式
+				\.xml 表示xml文件后缀，之所以是\.是因为正则表达式需要转义.符号
+			-->
+			<property name="fileName">LUA-SD$number,10$-$time,yyyyMMddHHmmss$\.xml</property>
+			<!-- 以下三个属性maxRowNum maxLineNum maxFileSize任意一个匹配则文件结束 -->
+			<!-- 行数据的最大个数 默认值：40000-->
+			<property name="maxRowNum">40000</property>
+			<!-- 文件的最大行数 只在需要时进行配置 -->
+			<property name="maxLineNum">1000000</property>
+			<!-- 文件的最大容量，此处配置数字即可，单位为M（兆） 只在需要时进行配置  -->
+			<property name="maxFileSize">1000</property>
+			<!-- 每隔N条从缓冲区写到磁盘上 默认值：1000 -->
+			<property name="flushNum">1000</property>
+			<!-- 为应对真实数据中可能存在$符号，故支持配置rowTag标签中用来匹配替换的标记，由于使用正则所以$符号需要转义为\$ 默认值\s  -->
+			<property name="symbol">\$</property>
+			<!-- 匹配文件开始部分中需要用来匹配替换其中$xx$所表示的文本的一整个【完整标签】的正则表达式 -->
+			<property name="formatTopRegex"><![CDATA[<info\s+id="\$[^\$"]*\$"\s+type="net_login_info"\s+resultnum="\$[^\$"]*\$"\s*>]]></property>
+			<!-- 文件开始部分
+				 $businessId(10)$ 表示取插件中获取到的businessId值，占位符(10)为该值可能出现的最大位数为10位
+				 $rowNum(10)$ 表示取插件中生成行数据的总数，占位符(10)为该值可能出现的最大位数为10位
+				 <br/>表示此处需要换行
+			-->
+			<property name="wrapTagStart">
+			<![CDATA[
+				<?xml version="1.0" encoding="UTF-8"?><br/>
+				<info id="$businessId(12)$" type="nat_cdr_info" resultnum="$rowNum(10)$">
+			]]>
+			</property>
+			<!-- 行数据生成时的模板
+				 $0$表示取队列中某行的索引为0的数据
+				 <br/>表示此处需要换行，行数据与行数据之间默认换行，故最后<br/>无需配置
+			-->
+			<property name="rowTag">
+			<![CDATA[
+				<log account="$1$"<br/>
+				accountType="$2$"<br/>
+				loginType="$3$"<br/>
+				priIp="$4$"<br/>
+				srcIp="$5$"<br/>
+				srcPort="$6$"<br/>
+				dstIp="$7$"<br/>
+				dstPort="$8$"<br/>
+				accessTime="$9$"<br/>
+				url="$10$"<br/>
+				LAC="$11$"<br/>
+				SAC="$12$"<br/>
+				/>
+			]]>
+			</property>
+			<!-- 文件结束部分 -->
+			<property name="wrapTagEnd">
+			<![CDATA[
+				</info>
+			]]>
+			</property>
+		</main-class>
+		<!--插件对应的处理插件id -->
+		<handler-id>handler_wid</handler-id>
+		<!--插件执行规则id 目前配死 -->
+		<rule-id>ruler_id</rule-id>
+	</plugin>
+	<!--插件id  插件类型（处理插件）id如没有被任何一个读或写插件引用，这个处理插件就不会执行 -->
+	<plugin ID="handler_id" type="handler">
+		<!--插件以及插件依赖jar包的目录 -->
+		<jar-dir></jar-dir>
+		<!--插件主类，插件主类id -->
+		<main-class ID="hid" class="com.customtime.data.conversion.domain.handler.DefaultHandler">
+			<!--插件主类里的属性值 -->
+			<property name="logText">hello handler</property>
+		</main-class>
+	</plugin>
+	<plugin ID="handler_wid" type="handler">
+		<jar-dir></jar-dir>
+		<main-class ID="hdid" class="com.customtime.data.conversion.domain.handler.DefaultWriterHandler">
+			<property name="logText">hello handler logText</property>
+			<property name="handleName">hello handler</property>
+		</main-class>
+	</plugin>
+	<!--插件id  插件类型（执行规则插件）目前配死 -->
+	<plugin ID="ruler_id" type="ruler">
+		<jar-dir></jar-dir>
+		<main-class ID="rid" class="com.customtime.data.conversion.domain.ruler.DefaultRunRuler">
+			<property name="rulerName">hello ruler</property>
+		</main-class>
+	</plugin>
+</process-plan>

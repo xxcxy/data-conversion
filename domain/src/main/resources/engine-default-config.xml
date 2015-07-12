@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<engine-config>
+	<core-implement>
+		<acceptor class="com.customtime.data.conversion.domain.acceptor.CommandAcceptor">
+			<property name="say">hello world!</property>
+			<property name="bufferSize">10240</property>
+		</acceptor>
+		<controller class="com.customtime.data.conversion.domain.controller.DefaultController">
+		</controller>
+		<rule-runner class="com.customtime.data.conversion.domain.ruler.DefaultRuleRunner"></rule-runner>
+		<rule-execute class="com.customtime.data.conversion.domain.ruler.DefaultExecutable"></rule-execute>
+		<recodes-keeper class="com.customtime.data.conversion.domain.keeper.DefaultRKeeper"></recodes-keeper>
+		<temporary class="com.customtime.data.conversion.domain.LBQStorage"></temporary>
+		<command class="com.customtime.data.conversion.domain.acceptor.command.DefaultCommand"></command>
+		<process-plan class="com.customtime.data.conversion.domain.plan.DefaultProcessPlan"></process-plan>
+		<recode class="com.customtime.data.conversion.domain.keeper.DefaultRecode"></recode>
+		<plugin-config class="com.customtime.data.conversion.domain.config.DefaultPluginConfig"></plugin-config>
+		<plugin-monitor class="com.customtime.data.conversion.domain.monitor.DefaultPluginMonitor"></plugin-monitor>
+		<CachePool class="com.customtime.data.conversion.domain.pool.EhCachePoolImpl">
+		</CachePool>
+	</core-implement> 
+	<scheduler>
+    </scheduler>
+</engine-config>

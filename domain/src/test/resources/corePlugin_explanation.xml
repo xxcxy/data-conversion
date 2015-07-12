@@ -1,0 +1,423 @@
+<plugin ID="XmlReader" type="reader">
+	<!--插件以及插件依赖jar包的目录 -->
+	<jar-dir></jar-dir>
+	<!--插件主类，插件主类id -->
+	<main-class ID="RCLID" class="com.customtime.data.conversion.plugin.reader.XmlReader">
+		<!-- xml 版本号 默认值:1.0 -->
+		<property name="version">1.0</property>
+		<!-- xml的编码 默认值：UTF-8 -->
+		<property name="encoding">UTF-8</property>
+		<!-- 读取的xml文件的绝对路径 -->
+		<property name="filePath">D:\\net_login_info.xml
+		</property>
+		<!-- 行取值规则中属性和文本同时配置时的优先级 可配property和inside property表示优先取属性,inside表示优先取文本 
+			默认值：property -->
+		<property name="pathPRI">property</property>
+		<!-- 行取值规则中行标签下的子标签的默认选择顺序 可配first last 0 1 2 …… 默认值：first -->
+		<property name="defaultFindTagIndex">0</property>
+		<!-- 行取值规则中属性和文本全都没有配置时的默认取值方式 可配property和inside property表示优先取属性,inside表示优先取文本 
+			默认值：property -->
+		<property name="defaultGetPath">property</property>
+		<!-- 行取值规则中取属性值时未指定属性名时的默认属性索引 可配first last 0 1 2 …… 默认值：first -->
+		<property name="defaultPropertyIndex">first</property>
+		<!--行标签规则，必须配置为行取值规则中的行标签为止 默认值：#info#log -->
+		<property name="rowTagPath">#info#log</property>
+		<!--行取值规则 #info#log[account] 取log标签的属性名为account的属性值 #info#log[@0] 取log标签的属性索引为0即第一个属性的属性值，索引从0开始 
+			#info#log#account() 取log标签的子标签名为account的文本值 #info#log#account[value]() 根据pathPRI配置项自动判断选择 
+			取log标签的子标签名为account的属性名为value的属性值 还是 取log标签的子标签名为account的文本值 #info#log#account 
+			根据defaultGetPath配置项自动判断选择 取log标签的子标签的属性值还是文本值，如果是属性值则还依赖defaultPropertyIndex的配置项 
+			#info#log#innerlog@last() 当log标签下存在多个innerlog标签时，取最后一个innerlog标签的文本值 #info#log#innerlog@last[@first] 
+			当log标签下存在多个innerlog标签时，取最后一个innerlog标签的第一个属性的属性值 #info#log#innerlog(name=account) 
+			当log标签下存在多个innerlog标签时，取其中属性name的属性值为account的innerlog标签的文本值 #info#log#innerlog[@2](name=account) 
+			当log标签下存在多个innerlog标签时，取其中属性name的属性值为account的innerlog标签的文本值或者它的第三个属性的属性值（依赖pathPRI的配置） 
+			等等 -->
+		<property name="row">
+			#info#log[account],
+			#info#log[accountType],
+			#info#log[loginType],
+			#info#log[priIpAddr],
+			#info#log[pubIpAddr],
+			#info#log[onLineTime],
+			#info#log[offLineTime]
+			</property>
+	</main-class>
+</plugin>
+
+
+<plugin ID="XmlWriter" type="writer">
+	<!--插件以及插件依赖jar包的目录 -->
+	<jar-dir></jar-dir>
+	<!--插件主类，插件主类id -->
+	<main-class ID="wid" class="com.customtime.data.conversion.plugin.writer.XmlWriter">
+		<!-- xml的编码 默认值：UTF-8 -->
+		<property name="encoding">UTF-8</property>
+		<!-- 生成的xml文件所在的目录 -->
+		<property name="fileDirectory">d:\\xmlwrite\\</property>
+		<!-- 生成的文件名 $number,10$ 表示按数字递增，且最大位数为10位 $time,yyyyMMddHHmmss$ 表示取生成文件时的系统时间的时间戳，格式必须是java的SimpleDateFormat类支持的且字母连续的格式 
+			\.xml 表示xml文件后缀，之所以是\.是因为正则表达式需要转义.符号 -->
+		<property name="fileName">LUU-\\d{2}$number,10$-$time,yyyyMMddHHmmss$\.xml
+		</property>
+		<!-- 以下三个属性maxRowNum maxLineNum maxFileSize任意一个匹配则文件结束 -->
+		<!-- 行数据的最大个数 默认值：40000 -->
+		<property name="maxRowNum">40000</property>
+		<!-- 文件的最大行数 只在需要时进行配置 -->
+		<property name="maxLineNum">1000000</property>
+		<!-- 文件的最大容量，此处配置数字即可，单位为M（兆）只在需要时进行配置 -->
+		<property name="maxFileSize">1000</property>
+		<!-- 每隔N条从缓冲区写到磁盘上 默认值：1000 -->
+		<property name="flushNum">1000</property>
+		<!-- 为应对真实数据中可能存在$符号，故支持配置rowTag标签中用来匹配替换的标记，由于使用正则所以$符号需要转义为\$ 默认值\s -->
+		<property name="symbol">\$</property>
+		<!-- 匹配文件开始部分中需要用来匹配替换其中$xx$所表示的文本的一整个【完整标签】的正则表达式 -->
+		<property name="formatTopRegex"><![CDATA[<info\s+id="\$[^\$"]*\$"\s+type="net_login_info"\s+resultnum="\$[^\$"]*\$"\s*>]]></property>
+		<!-- 文件开始部分 $businessId(10)$ 表示取插件中获取到的businessId值，占位符(10)为该值可能出现的最大位数为10位 
+			$rowNum(10)$ 表示取插件中生成行数据的总数，占位符(10)为该值可能出现的最大位数为10位 <br/>表示此处需要换行 -->
+		<property name="wrapTagStart">
+			<![CDATA[
+				<?xml version="1.0" encoding="UTF-8"?><br/>
+				<info id="$businessId(12)$" type="net_login_info" resultnum="$rowNum(10)$">
+			]]>
+		</property>
+		<!-- 行数据生成时的模板 $0$表示取队列中某行的索引为0的数据 <br/>表示此处需要换行，行数据与行数据之间默认换行，故最后<br/>无需配置 -->
+		<property name="rowTag">
+			<![CDATA[
+				<log account="$0$"<br/>
+				accountType="$1$"<br/>
+				loginType="$2$"<br/>
+				priIpAddr="$3$"<br/>
+				pubIpAddr="$4$"<br/>
+				onLineTime="$5$"<br/>
+				offLineTime="$6$"<br/>
+				/>
+			]]>
+		</property>
+		<!-- 文件结束部分 -->
+		<property name="wrapTagEnd">
+			<![CDATA[
+				</info>
+			]]>
+		</property>
+	</main-class>
+</plugin>
+
+
+<plugin ID="FileReader" type="reader">
+	<jar-dir></jar-dir>
+	<main-class ID="RCLID" class="com.customtime.data.conversion.plugin.reader.FileReader">
+		<!-- 文件名(不包含目录) -->
+		<property name="fileName">aaa.txt</property>
+		<!-- 文件所在路径 -->
+		<property name="fileDir">/home/logserver/svn</property>
+		<!-- 记录的分割符,以莫子符把行记录分割是各个字段(二进制文件是不使用此配置) -->
+		<property name="fieldSplit">,</property>
+		<!-- 把分割后的记录按顺序排列放入队列,从0开始 -->
+		<property name="cols">0,2,1</property>
+		<!-- 如果是二进制文件(按字节个数放入字段,如果是文本文件,按长度放入字段(当是文本文件时,只有在fieldSplit,cols两个属性没有配置时才有作用) -->
+		<property name="collong">1,4,3</property>
+		<!-- 文件类型,当文件类型是 2 时表示读的文件是二进制文件 -->
+		<property name="filetype">0</property>
+		<!-- 文件的编码 默认值：UTF-8 -->
+		<property name="encoding">UTF-8</property>
+	</main-class>
+</plugin>
+
+
+<plugin ID="FilesWriter" type="writer">
+	<jar-dir></jar-dir>
+	<main-class ID="wid2" class="com.customtime.data.conversion.plugin.writer.FilesWriter">
+		<!-- 文件名(不包含目录) -->
+		<property name="fileName">aaa.txt</property>
+		<!-- 文件目录 -->
+		<property name="fileDir">/home/logserver/svn</property>
+		<!-- 记录的分割符,按分隔符把字段拼成一行写入文本 -->
+		<property name="fieldSplit">,</property>
+		<!-- 按属性的配置顺序把记录的各个字段拼成一行 -->
+		<property name="cols">1,0,2</property>
+		<!-- 写文件时是否从文件末尾开始写 -->
+		<property name="fileAppend">true</property>
+		<!-- 文件的编码 默认值：UTF-8 -->
+		<property name="encoding">UTF-8</property>
+	</main-class>
+</plugin>
+
+
+<plugin ID="PoolWriter" type="writer">
+	<jar-dir></jar-dir>
+	<main-class ID="wid2" class="com.customtime.data.conversion.plugin.writer.PoolWriter">
+		<!-- 写的缓存名 -->
+		<property name="cacheName">iptrace</property>
+		<!-- 配置某个字段作为key中的相等属性,可以把几个字段拼装在一起 -->
+		<property name="keyString">1,3</property>
+		<!-- 配置中key中用来比较大小的属性,一般是数字类型的,如果是日期格式要加;日期格式 -->
+		<property name="parseM1">2</property>
+		<!-- 配置中key中第二个用来比较大小的属性,一般是数字类型的,如果是日期格式要加;日期格式 -->
+		<property name="parseM2">3;yyyy-MM-dd HH:mm:ss.SSS</property>
+	</main-class>
+</plugin>
+
+
+<plugin ID="JDBCWriter" type="writer">
+	<jar-dir></jar-dir>
+	<main-class ID="wid2" class="com.customtime.data.conversion.plugin.writer.JDBCWriter">
+		<!-- 要写入的表名 -->
+		<property name="tableName">tableName</property>
+		<!-- 表中的要写入的字段名 -->
+		<property name="colNames">colnum1,user,state</property>
+		<!-- 要把哪几个字段写入 -->
+		<property name="fieldOrders">0,3,1</property>
+		<!-- 数据库连接的url -->
+		<property name="connUrl">jdbc:mysql://10.166.111.42:3306/logserver</property>
+		<!-- 数据库用户名 -->
+		<property name="userName">userName</property>
+		<!-- 数据库密码 -->
+		<property name="password">password</property>
+		<!-- jdbc驱动名 -->
+		<property name="driverString">com.mysql.jdbc.Driver</property>
+		<!-- 多少条数据批量提交一次 -->
+		<property name="batchRows">1000</property>
+		<!-- 任务执行前需要执行的语句 -->
+		<property name="preSql">truncate tableName</property>
+		<!-- 任务执行完成后执行的语句 -->
+		<property name="finshSql">drop table tableName</property>
+	</main-class>
+</plugin>
+
+
+<plugin ID="OnlineRecodeHandler" type="handler">
+	<jar-dir></jar-dir>
+	<main-class ID="hid2" class="com.customtime.data.conversion.domain.handler.OnlineRecodeHandler">
+		<!-- 需要取出的缓存名 -->
+		<property name="cacheName">iptrace</property>
+		<!-- 查询缓存的语句 -->
+		<property name="queryString">equString.eq("%s").and(m1.le(%s))</property>
+		<!-- 查询的排序语句 -->
+		<property name="orderbyString">addOrderBy(m1, Direction.DESCENDING)</property>
+		<!-- 原记录中哪些字段来替换查询语句中的%s,4;5表示第四个字段和第五个字段合并,6;yyyy-MM-dd HH:mm:ss.SSS 表示第六个字段是日期格式,需要转换成long型 -->
+		<property name="queryParamCol">4;5,6;yyyy-MM-dd HH:mm:ss.SSS</property>
+		<!-- 从缓存中取出的记录需要哪些字段,这些字段会拼装在原记录的末尾 -->
+		<property name="rdCol">0,1,2</property>
+		<!-- 没找到配置的记录输出到的文件名,文件的全路径(包括文件夹和文件名) -->
+		<property name="errFile">C:\\Users\\z00211682\\Desktop\\error.err</property>
+		<!-- 错误记录字段分隔符，默认 ， -->
+		<property name="errSplit">,</property>
+	</main-class>
+</plugin>
+
+
+<plugin ID="KeyObjectEhCacheHandler" type="handler">
+	<jar-dir></jar-dir>
+	<main-class ID="hid2" class="com.customtime.data.conversion.domain.handler.KeyObjectEhCacheHandler">
+		<!-- 需要取出的缓存名 -->
+		<property name="cacheName">iptrace</property>
+		<!-- 判断相等字段的字段位置  ; 分割 -->
+		<property name="keyStringCol">0;1</property>
+		<!-- m1的比较类型 1(<=) 2(<) 3(>=) 4(>) 是缓存中的记录与现在的记录比较 -->
+		<property name="m1ConditionType">1</property>
+		<!-- 哪个字段用来做 m1  -->
+		<property name="m1Col">2</property>
+		<!-- 用来做m1的字段如果是日期型的,需要配置日期格式,如果不是不用配置 -->
+		<property name="m1Fmt">yyyy-MM-dd HH:mm:ss.SSS</property>
+		<!-- m2的比较类型 1(<=) 2(<) 3(>=) 4(>) 是缓存中的记录与现在的记录比较 -->
+		<property name="m2ConditionType">1</property>
+		<!-- 哪个字段用来做 m2  -->
+		<property name="m2Col">2</property>
+		<!-- 用来做m2的字段如果是日期型的,需要配置日期格式,如果不是不用配置 -->
+		<property name="m2Fmt">yyyy-MM-dd HH:mm:ss.SSS</property>
+		<!-- 从缓存中取出的记录需要哪些字段,这些字段会拼装在原记录的末尾 -->
+		<property name="rdCol">0,1,2</property>
+		<!-- 用排序来确定最近的一条 1(m1 升序) 2(m1 降序) 3(m2 升序) 4(m2 降序)  -->
+		<property name="orderBy">1</property>
+		<!-- 没找到配置的记录输出到的文件名,文件的全路径(包括文件夹和文件名) -->
+		<property name="errFile">C:\\Users\\z00211682\\Desktop\\error.err</property>
+		<!-- 错误记录字段分隔符，默认 ， -->
+		<property name="errSplit">,</property>
+		<!-- 成功记录的记录类型 -->
+		<property name="successLineType">natsuccess</property>
+		<!-- 失败记录的记录类型 -->
+		<property name="failureLineType">natfail</property>
+	</main-class>
+</plugin>
+
+
+<plugin ID="JoinBlockHandler" type="handler">
+	<jar-dir></jar-dir>
+	<main-class ID="hid2" class="com.customtime.data.conversion.domain.handler.JoinBlockHandler">
+		<!-- 合并规则 ,分隔字段 ;表示此字段是由那几个字段合并 -->
+		<property name="join_rule">1;2,2;3,,1,2,3</property>
+		<!-- 合并的字段以此字符为分隔符，默认是 ,-->
+		<property name="splitStr">,</property>
+		<!-- 以什么字段来代替空字符串 -->
+		<property name="replaceNull">''</property>
+	</main-class>
+</plugin>
+
+
+<plugin ID="ReplaceHandler" type="handler">
+	<jar-dir></jar-dir>
+	<main-class ID="hid2" class="com.customtime.data.conversion.domain.handler.ReplaceHandler">
+		<!-- 需要去掉的头字符串 -->
+		<property name="startFilterStr">'</property>
+		<!-- 需要去掉的尾字符串-->
+		<property name="endFilterStr">'</property>
+	</main-class>
+</plugin>
+
+
+<plugin ID="FormatHandler" type="handler">
+	<jar-dir></jar-dir>
+	<main-class ID="hid2" class="com.customtime.data.conversion.domain.handler.FormatHandler">
+		<!-- 需要转换的字段 -->
+		<property name="col">3</property>
+		<!-- 转换类型，0表示与参数相加，1表示与字段减去参数，2表示与参数相乘，3表示除于参数，4表示将数字转换成日期字符串，以参数为格式 ，5表示以参数为格式将日期字符串转化为日期取出long-->
+		<property name="operatType">2</property>
+		<!-- 参数 -->
+		<property name="param">1000</property>
+	</main-class>
+</plugin>
+
+
+<plugin ID="Operat2FiledHandler" type="handler">
+	<jar-dir></jar-dir>
+	<main-class ID="hid2" class="com.customtime.data.conversion.domain.handler.Operat2FiledHandler">
+		<!-- 用来操作的字段 -->
+		<property name="col1">3</property>
+		<!-- 用来操作的第二个字段 -->
+		<property name="col2">3</property>
+		<!-- 转换类型，0表示与参数相加，1表示与字段减去参数，2表示与参数相乘，3表示除于参数 -->
+		<property name="operatType">2</property>
+	</main-class>
+</plugin>
+
+<plugin ID="InterceptHandler" type="handler">
+	<jar-dir></jar-dir>
+	<main-class ID="hid2" class="com.customtime.data.conversion.domain.handler.InterceptHandler">
+		<!-- 需要做截取的recode中的索引
+			1.如设置了此索引则处理recode中对应索引的值
+			2.如不设置或者设置为小于0的数则遍历处理recode所有索引对应的值
+			3.也可以支持多个特定索引的处理，可以配置为2,4,6（必须全部为大于等于0的数字且用,号隔开,小于0的将忽略），表示处理recode中索引为2、4、6的值，如格式不正确则按照第2点处理
+			4.如索引超过了recode的最大索引则跳过该索引的处理
+		-->
+		<property name="recodeIndex">2</property>
+		<!-- 截取的规则
+			典型的例子，比如字符串为2012-11-27 00:09:29.000000025，截取规则为[11-12][14-15]
+			则表示截取从字符串（索引从0开始）的第11位索引位置（包含）开始到第12位结束（包含）的字符串再加上第14位索引位置（包含）开始到第15位结束（包含）的字符串
+			截取的最后结果为0009
+			
+			其它说明：
+			1.interceptRule没配置、或配置为空字符串、或者recode对应索引的值为null则不作处理
+			2.本插件支持xx[11-12]yy[14-15]zz这种格式，其中xx、yy、zz为截取字符串的后添加的前缀或后缀字符串（这些字符串不能包含[和]），上面的例子的最后结果会变为xx00yy09zz
+			3.本插件还支持的截取规则[]部分的内容，必须是[m-n]格式，且m和n可以为数字、字符串first、字符串end，如格式不正确则不截取（即截取到的为空字符串）但是仍然处理第2点描述的前缀和后缀
+			4.如[m-n]中m小于n则会将截取的字符串反转，比如截取规则为[11-12][15-14]则截取的最后结果为0090
+			5.m或者n如果超过了待处理的recode对应索引的值的最大索引则自动处理为end逻辑
+		-->
+		<property name="interceptRule">[11-12][14-15]</property>
+	</main-class>
+</plugin>
+
+<!-- raduis的校验处理插件 -->
+<plugin ID="handler_id_raduis" type="handler">
+	<jar-dir>D:\\iptrace\\jar</jar-dir>
+	<main-class ID="HANDLERCHECK" class="com.customtime.data.conversion.test.handler.WlanHandler">
+		<property name="dbDriverString">com.ibm.db2.jcc.DB2Driver</property>
+		<property name="dbConnUrl">jdbc:db2://192.168.11.133:50001/gdomain1</property>
+		<property name="dbUserName">gprslog</property>
+		<property name="dbUserPwd">gprslog</property>
+		<!-- 文件名与原文件相同，不同的是后缀改为.validerr,默认目录为当前文件所在目录的validerr子目录 -->
+		<property name="validErrDir"></property>
+		<!-- radius nat dpi nat-session nat-pba -->
+		<property name="logType">radius</property>
+		<!-- 默认不校验总数，默认值-1 -->
+		<property name="colTotalNum">7</property>
+		<!-- mobile in range ip time port url -->
+		<property name="colValidType">|in|range|ip|ip|time|time</property>
+		<!-- colValidType的参数 -->
+		<property name="colValidTypeParam">|1,2|1~4|||yyyy-MM-dd HH:mm:ss|yyyy-MM-dd HH:mm:ss</property>
+		<!-- 是否可为空（空包括内容是空格的字符串），默认为可空 n不能为空 y可以为空 -->
+		<property name="colNullAble">n|n|n|n|y|n|n</property>
+		<!-- colValidType colValidTypeParam colNullAble 必须有相同个数的|符号，否则报错 -->
+	</main-class>
+</plugin>
+<!-- SESSION级NAT的处理插件 -->
+<plugin ID="handler_id_NAT_SESSION" type="handler">
+	<jar-dir>D:\\iptrace\\jar</jar-dir>
+	<!-- 目前写死ID="HANDLERCHECK" -->
+	<main-class ID="HANDLERCHECK" class="com.customtime.data.conversion.test.handler.WlanHandler">
+		<property name="dbDriverString">com.ibm.db2.jcc.DB2Driver</property>
+		<property name="dbConnUrl">jdbc:db2://192.168.11.133:50001/gdomain1</property>
+		<property name="dbUserName">gprslog</property>
+		<property name="dbUserPwd">gprslog</property>
+		<!-- 文件名与原文件相同，不同的是后缀改为.validerr,默认目录为当前文件所在目录的validerr子目录 -->
+		<property name="validErrDir"></property>
+		<!-- radius nat dpi nat-session nat-pba -->
+		<property name="logType">nat-session</property>
+		<!-- 默认不校验总数，默认值-1 -->
+		<property name="colTotalNum">9</property>
+		<!-- mobile in range ip time port url num positiveNum negativeNum-->
+		<property name="colValidType">in|ip|port|ip|port|ip|port|positiveNum|positiveNum</property>
+		<!-- colValidType的参数 -->
+		<property name="colValidTypeParam">1||||||||</property>
+		<!-- 是否可为空（空包括内容是空格的字符串），默认为可空 n不能为空 y可以为空 -->
+		<property name="colNullAble">n|n|n|n|n|n|n|n|n</property>
+		<!-- colValidType colValidTypeParam colNullAble 必须有相同个数的|符号，否则报错 -->
+	</main-class>
+</plugin>
+
+<!-- 用户级(PBA)NAT的处理插件 -->
+<plugin ID="handler_id_NAT_PBA" type="handler">
+	<jar-dir>D:\\iptrace\\jar</jar-dir>
+	<!-- 目前写死ID="HANDLERCHECK" -->
+	<main-class ID="HANDLERCHECK" class="com.customtime.data.conversion.test.handler.WlanHandler">
+		<property name="dbDriverString">com.ibm.db2.jcc.DB2Driver</property>
+		<property name="dbConnUrl">jdbc:db2://192.168.11.133:50001/gdomain1</property>
+		<property name="dbUserName">gprslog</property>
+		<property name="dbUserPwd">gprslog</property>
+		<!-- 文件名与原文件相同，不同的是后缀改为.validerr,默认目录为当前文件所在目录的validerr子目录 -->
+		<property name="validErrDir"></property>
+		<!-- radius nat dpi nat-session nat-pba -->
+		<property name="logType">nat-pba</property>
+		<!-- 默认不校验总数，默认值-1 -->
+		<property name="colTotalNum">6</property>
+		<!-- mobile in range ip time port url num positiveNum negativeNum-->
+		<property name="colValidType">in|ip|ip|port|port|positiveNum</property>
+		<!-- colValidType的参数 -->
+		<property name="colValidTypeParam">2|||||</property>
+		<!-- 是否可为空（空包括内容是空格的字符串），默认为可空 n不能为空 y可以为空 -->
+		<property name="colNullAble">n|n|n|n|n|n</property>
+		<!-- colValidType colValidTypeParam colNullAble 必须有相同个数的|符号，否则报错 -->
+		
+	</main-class>
+</plugin>
+<!-- DPI校验的处理插件 -->
+<plugin ID="handler_id_DPI" type="handler">
+	<jar-dir>D:\\iptrace\\jar</jar-dir>
+	<!-- 目前写死ID="HANDLERCHECK" -->
+	<main-class ID="HANDLERCHECK" class="com.customtime.data.conversion.test.handler.WlanHandler">
+		<property name="dbDriverString">com.ibm.db2.jcc.DB2Driver</property>
+		<property name="dbConnUrl">jdbc:db2://192.168.11.133:50001/gdomain1</property>
+		<property name="dbUserName">gprslog</property>
+		<property name="dbUserPwd">gprslog</property>	
+		<!-- 配置为raduis的KeyObjectEhCacheHandler处理插件中的successLineType即可 -->
+		<property name="dpiSuccessLineType">raduissuccess</property>
+		<!-- 需要同时配置为raduis和nat的KeyObjectEhCacheHandler处理插件中的failureLineType，并以,隔开 -->
+		<property name="dpiFailureLineType">natfail,raduisfail</property>
+		<!-- 原始文件后缀名 -->
+		<property name="dpiOrgFileSuffix">.txt</property>
+		<!-- 原始文件路径，保证与iptrace.properties中的dpiDir一致 -->
+		<property name="dpiOrgFileDir">D:\\iptrace\\data\\dpi</property>
+		<!-- 文件名与原文件相同，不同的是后缀改为.validerr,默认目录为当前文件所在目录的validerr子目录 -->
+		<property name="validErrDir"></property>
+		<!-- 配置项trimStr是针对所有字段在进行validType校验时trim掉的左右字符(只支持单字符)，如该字符本身是正则表达式特殊字符，则记得要转义。如果不配置则在进行validType校验时不进行trim -->
+		<property name="trimStr">'</property>
+		<!-- radius nat dpi nat-session nat-pba -->
+		<property name="logType">dpi</property>
+		<!-- 默认不校验总数，默认值-1 -->
+		<property name="colTotalNum">7</property>
+		<!-- mobile in range ip time port url num positiveNum negativeNum-->
+		<property name="colValidType">time|time|ip|port|ip|port|</property>
+		<!-- colValidType的参数 -->
+		<property name="colValidTypeParam">yyyy-MM-dd HH:mm:ss|yyyy-MM-dd HH:mm:ss|||||</property>
+		<!-- 是否可为空（空包括内容是空格的字符串），默认为可空 n不能为空 y可以为空 -->
+		<property name="colNullAble">n|n|n|n|n|n|n</property>
+		<!-- colValidType colValidTypeParam colNullAble 必须有相同个数的|符号，否则报错 -->
+	</main-class>
+</plugin>
