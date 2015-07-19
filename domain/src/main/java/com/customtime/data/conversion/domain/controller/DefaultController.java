@@ -1,6 +1,9 @@
 package com.customtime.data.conversion.domain.controller;
 
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import com.customtime.data.conversion.domain.config.PluginConfig;
 import com.customtime.data.conversion.domain.context.ResourceContext;
@@ -44,8 +47,10 @@ public class DefaultController implements Controller{
 		terminatRuleRunner.execute();
 		ResourceContext.removeThreadObject();
 		if(tpr!=null){
+			ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 5, 3, TimeUnit.SECONDS,
+					new LinkedBlockingQueue<Runnable>(30));
 			for(TerminatRunable tprr:tpr)
-				new Thread(tprr).start();
+				threadPoolExecutor.execute(tprr);
 		}
 	}
 
